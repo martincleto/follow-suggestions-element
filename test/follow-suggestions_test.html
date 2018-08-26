@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>follow-suggestions test</title>
+
+    <script src="../../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../bower_components/web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../follow-suggestions.html">
+  </head>
+  <body>
+
+    <test-fixture id="BasicTestFixture">
+      <template>
+        <follow-suggestions></follow-suggestions>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="ChangedPropertyTestFixture">
+      <template>
+        <follow-suggestions amount="7"></follow-suggestions>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('<follow-suggestions>', () => {
+        const mockResponse = [
+          {login: 'user0', html_url: 'http://somedomain/user0', avatar_url: 'http://somedomain/user0.png'},
+          {login: 'user1', html_url: 'http://somedomain/user1', avatar_url: 'http://somedomain/user1.png'},
+          {login: 'user2', html_url: 'http://somedomain/user2', avatar_url: 'http://somedomain/user2.png'},
+          {login: 'user3', html_url: 'http://somedomain/user3', avatar_url: 'http://somedomain/user3.png'},
+          {login: 'user4', html_url: 'http://somedomain/user4', avatar_url: 'http://somedomain/user4.png'},
+          {login: 'user5', html_url: 'http://somedomain/user5', avatar_url: 'http://somedomain/user5.png'},
+          {login: 'user6', html_url: 'http://somedomain/user6', avatar_url: 'http://somedomain/user6.png'},
+          {login: 'user7', html_url: 'http://somedomain/user7', avatar_url: 'http://somedomain/user7.png'},
+          {login: 'user8', html_url: 'http://somedomain/user8', avatar_url: 'http://somedomain/user8.png'},
+          {login: 'user9', html_url: 'http://somedomain/user9', avatar_url: 'http://somedomain/user9.png'},
+        ];
+        let element;
+        let elementShadowRoot;
+        let server;
+
+        function serverRespond (server) {
+          server.respondWith(
+            'GET',
+            /https:\/\/api.github.com\/users\?since=\d+/,
+            [
+              200,
+              {'Content-Type': 'application/json'},
+              JSON.stringify(mockResponse)
+            ]
+          );
+          server.respond();
+        }
+
+        setup(function(done) {
+          server = sinon.fakeServer.create();
+          element = fixture('BasicTestFixture');
+          elementShadowRoot = element.shadowRoot;
+
+          flush(done)
+        });
+
+        teardown(function() {
+          server.restore();
+        });
+
+        test('should have a header containing "Who to follow" text', () => {
+          serverRespond(server);
+
+          const elementHeader = elementShadowRoot.querySelector('h2');
+
+          expect(elementHeader.innerHTML).to.equal('Who to follow');
+        });
+
+        test('should render 3 suggestions by default', (done) => {
+          serverRespond(server);
+
+          const defaultSuggestionsAmount = 3;
+
+          flush(() => {
+            const suggestions = elementShadowRoot.querySelectorAll('li');
+
+            expect(suggestions.length).to.equal(defaultSuggestionsAmount);
+            done();
+          });
+        });
+
+        suite('when "amount" attribute is set with a value', () => {
+          setup(function(done) {
+            server = sinon.fakeServer.create();
+            element = fixture('ChangedPropertyTestFixture');
+            elementShadowRoot = element.shadowRoot;
+
+            flush(done)
+          });
+
+          test('should render as many suggestions as attribute value', (done) => {
+            serverRespond(server);
+            flush(() => {
+              const actualAmount = element.getAttribute('amount');
+              const suggestions = elementShadowRoot.querySelectorAll('li');
+
+              expect(suggestions.length).to.equal(element.amount);
+              done();
+            });
+          });
+        })
+
+
+        test('should have a "Refresh" button', () => {
+          serverRespond(server);
+
+          const refreshButton = elementShadowRoot.querySelector('#refresh');
+
+          expect(refreshButton).not.to.be.a('null')
+        });
+/*
+        test('should show new suggestions on clicking "Refresh" button', () => {
+          const thisTestIsOk = false;
+
+          expect(thisTestIsOk).to.be.true
+        });
+*/
+
+        test('should provide an image, a link, and a "Remove button" for every suggestions', (done) => {
+          serverRespond(server);
+          flush(() => {
+            const suggestions = elementShadowRoot.querySelectorAll('li');
+
+            suggestions.forEach((suggestion, index) => {
+              const currentSuggestion = element.suggestions[index];
+              const image = suggestion.querySelector('img');
+              const link = suggestion.querySelector('a');
+              const removeButton = suggestion.querySelector('button');
+
+              expect(image).not.to.be.a('null');
+              expect(image.src).to.equal(currentSuggestion.avatar_url);
+              expect(link).not.to.be.a('null');
+              expect(link.href).to.equal(currentSuggestion.html_url);
+              expect(removeButton).not.to.be.a('null');
+              expect(removeButton.innerHTML).to.equal('Remove');
+            });
+
+            done();
+          });
+        });
+/*
+        test('should remove a suggestion and show a new one on clicking "Remove" button', () => {
+          const thisTestIsOk = false;
+
+          expect(thisTestIsOk).to.be.true
+        });
+*/
+      });
+
+    </script>
+
+  </body>
+</html>

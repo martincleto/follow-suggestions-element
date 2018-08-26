@@ -1,0 +1,103 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="follow-suggestions">
+  <template>
+    <style>
+      :root {
+        --avatar-size: 80px;
+      }
+
+      h1 {
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0 1.5rem 0 0;
+      }
+
+      ul {
+        list-style-type: none;
+        font-size: 1.1rem;
+      }
+
+      li {
+        position: relative;
+        min-height: var(--avatar-size);
+        padding-left: calc(var(--avatar-size) + 10px);
+        margin-bottom: 20px;
+      }
+
+      li a {
+        line-height: var(--avatar-size);
+        vertical-align: middle;
+      }
+
+      li .btn {
+        font-size: .9rem;
+        margin-left: .85rem;
+      }
+
+      li img {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width:  var(--avatar-size);
+        height: auto;
+        border-radius: calc( var(--avatar-size) / 2);
+      }
+
+      .btn {
+        line-height: 1.5rem;
+        padding: 0 .5rem;
+      }
+
+    </style>
+
+    <h2>Who to follow</h2>
+    <button id="refresh" class="btn">Refresh</button>
+
+    <iron-ajax
+      auto
+      url="https://api.github.com/users"
+      params='{"since": 500}'
+      handle-as="json"
+      last-response="{{response}}"
+      on-response="handleResponse"
+      ></iron-ajax>
+
+    <ul>
+      <template is="dom-repeat" id="suggestionsList" items="{{suggestions}}">
+        <li id="suggestion-{{index}}">
+          <img src="{{item.avatar_url}}" alt="{{item.login}} avatar">
+          <a href="{{item.html_url}}">{{item.login}}</a>
+          <button class="btn" id="remove-{{index}}">Remove</button>
+        </li>
+      </template>
+    </ul>
+  </template>
+
+  <script>
+    class FollowSuggestions extends Polymer.Element {
+
+      static get is () { return 'follow-suggestions'; }
+
+      static get properties () {
+        return {
+          amount: {
+            type: Number,
+            value: 3
+          },
+          suggestions: {
+            type: Array,
+            value: []
+          }
+        }
+      }
+
+      handleResponse (evt) {
+        this.suggestions = evt.detail.response.slice(0, this.amount)
+      }
+    }
+
+    window.customElements.define(FollowSuggestions.is, FollowSuggestions);
+  </script>
+</dom-module>
