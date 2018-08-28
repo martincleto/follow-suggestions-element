@@ -69,8 +69,6 @@
         });
 
         test('should have a header containing "Who to follow" text', () => {
-          serverRespond(server);
-
           const elementHeader = elementShadowRoot.querySelector('h2');
 
           expect(elementHeader.innerHTML).to.equal('Who to follow');
@@ -112,22 +110,34 @@
 
 
         test('should have a "Refresh" button', () => {
-          serverRespond(server);
-
           const refreshButton = elementShadowRoot.querySelector('#refresh');
 
           expect(refreshButton).not.to.be.a('null')
         });
-/*
-        test('should show new suggestions on clicking "Refresh" button', () => {
-          const thisTestIsOk = false;
 
-          expect(thisTestIsOk).to.be.true
+        test('should show new suggestions on clicking "Refresh" button', (done) => {
+          sinon.spy(element, '_setSuggestions');
+          serverRespond(server);
+
+          flush(() => {
+            const lastIndexBeforeClick = element._lastIndex;
+
+            element.$.refresh.click();
+
+            expect(element._setSuggestions.calledOnce).to.be.true;
+            expect(element.suggestions.length).to.equal(element.amount);
+
+            element.suggestions.forEach((suggestion, index) => {
+            });
+            element._setSuggestions.restore();
+            done();
+          });
         });
-*/
+
 
         test('should provide an image, a link, and a "Remove button" for every suggestions', (done) => {
           serverRespond(server);
+
           flush(() => {
             const suggestions = elementShadowRoot.querySelectorAll('li');
 
@@ -148,16 +158,37 @@
             done();
           });
         });
-/*
-        test('should remove a suggestion and show a new one on clicking "Remove" button', () => {
-          const thisTestIsOk = false;
 
-          expect(thisTestIsOk).to.be.true
+        test('should remove a suggestion and show a new one on clicking "Remove" button', (done) => {
+          serverRespond(server);
+
+          const randomIndex = Math.floor(Math.random() * element.amount);
+
+          flush(() => {
+            const randomButton = elementShadowRoot.querySelectorAll('ul button')[randomIndex];
+            const lastIndexBeforeClick = element._lastIndex;
+
+            randomButton.click();
+            expect(element.suggestions[randomIndex]).to.deep.equal(mockResponse[lastIndexBeforeClick]);
+            done();
+          });
         });
-*/
+
+        test('should perform a request if no more users are available', (done) => {
+          sinon.spy(element, 'handleResponse');
+          serverRespond(server);
+          element._lastIndex = mockResponse.length;
+          element.$.refresh.click();
+          server.respondImmediately = true;
+          server.respond();
+
+          flush(() => {
+            expect(element._lastIndex).to.be.equal(element.amount);
+            expect(element.handleResponse.calledTwice).to.be.true;
+            done();
+          })
+        })
       });
-
     </script>
-
   </body>
 </html>

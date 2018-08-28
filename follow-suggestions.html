@@ -53,20 +53,20 @@
     </style>
 
     <h2>Who to follow</h2>
-    <button id="refresh" class="btn">Refresh</button>
+    <button id="refresh" class="btn" on-click="handleClick">Refresh</button>
 
     <iron-ajax
       auto
       url="https://api.github.com/users"
-      params='{"since": 500}'
+      params="[[queryParams]]"
       handle-as="json"
       last-response="{{response}}"
       on-response="handleResponse"
-      ></iron-ajax>
+      id="ajax"></iron-ajax>
 
-    <ul>
+    <ul on-click="handleClick">
       <template is="dom-repeat" id="suggestionsList" items="{{suggestions}}">
-        <li id="suggestion-{{index}}">
+        <li>
           <img src="{{item.avatar_url}}" alt="{{item.login}} avatar">
           <a href="{{item.html_url}}">{{item.login}}</a>
           <button class="btn" id="remove-{{index}}">Remove</button>
@@ -76,8 +76,11 @@
   </template>
 
   <script>
-    class FollowSuggestions extends Polymer.Element {
+    function getRandomInt () {
+      return Math.round(Math.random() * 500)
+    }
 
+    class FollowSuggestions extends Polymer.Element {
       static get is () { return 'follow-suggestions'; }
 
       static get properties () {
@@ -86,15 +89,68 @@
             type: Number,
             value: 3
           },
+          queryParams: {
+            type: Object,
+            value: () => ({ since: getRandomInt() })
+          },
           suggestions: {
             type: Array,
-            value: []
-          }
+            value: () => []
+          },
+          _clickEventTarget: {
+            type: Object,
+            value: () => ({})
+          },
+          _lastIndex: {
+            type: Number,
+            value: 0
+          },
         }
       }
 
-      handleResponse (evt) {
-        this.suggestions = evt.detail.response.slice(0, this.amount)
+      ready() {
+        super.ready();
+        this.$.refresh.click();
+      }
+
+      handleClick (evt) {
+        this._clickEventTarget = evt.target;
+        this._setSuggestions();
+      }
+
+      handleResponse () {
+        this._lastIndex = 0;
+        this._update();
+      }
+
+      _update (newLastIndexValue) {
+        newLastIndexValue = newLastIndexValue || this.amount;
+        let newSuggestionsValue;
+
+        if (newLastIndexValue - this._lastIndex === 0) {
+          const targetSuggestionIndex = this._clickEventTarget.id.split('-')[1];
+
+          // @see https://www.polymer-project.org/2.0/docs/devguide/model-data#work-with-arrays
+          this.set(`suggestions.${targetSuggestionIndex}`, this.response[newLastIndexValue])
+          newLastIndexValue += 1;
+        } else {
+          this.suggestions =  this.response.slice(this._lastIndex, newLastIndexValue);
+        }
+
+        this._lastIndex = newLastIndexValue;
+      }
+
+      _setSuggestions () {
+        const isRefresh = this._clickEventTarget.id === 'refresh';
+        const newLastIndexValue = isRefresh ? this._lastIndex + this.amount : this._lastIndex;
+
+        if (this.response && this.response[newLastIndexValue - 1]) {
+          this._update(newLastIndexValue);
+        } else {
+          // No enough data locally available, perfoming new request
+          // implicit generateRequest() as 'auto' attribute is set in iron-ajax element
+          this.$.ajax.params = { since: getRandomInt() }
+        }
       }
     }
 
