@@ -1,18 +1,14 @@
 # \<follow-suggestions\>
 
-Basic who-to-follow in GitHub
+Basic who-to-follow in GitHub using [Polymer 2](https://www.polymer-project.org/2.0/start/)
 
-## Install the Polymer-CLI
+## Requisites
 
-First, make sure you have the [Polymer CLI](https://www.npmjs.com/package/polymer-cli) installed. Then run `polymer serve` to serve your element locally.
+- [Polymer CLI](https://www.npmjs.com/package/polymer-cli) installed.
 
-## Viewing Your Element
+## Demo
 
-```
-$ polymer serve
-```
-
-And navigate to [http://localhost:8081/demo] to see the element demo.
+Run `$ polymer serve` and navigate to http://localhost:8081/demo to see the element demo.
 
 ## Running Tests
 
@@ -22,4 +18,4 @@ Chrome (or Chromium for Linux OS) must be previously installed and LAUNCHPAD_CHR
 $ polymer test
 ```
 
-You can also navigate to [http://localhost:8081/test/follow-suggestions_test.html] to run the tests.
+You can also navigate to http://localhost:8081/test/follow-suggestions_test.html to run the tests.
