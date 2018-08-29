@@ -140,7 +140,7 @@
         this._lastIndex = newLastIndexValue;
       }
 
-      _setSuggestions () {
+      _setSuggestions() {
         const isRefresh = this._clickEventTarget.id === 'refresh';
         const newLastIndexValue = isRefresh ? this._lastIndex + this.amount : this._lastIndex;
 

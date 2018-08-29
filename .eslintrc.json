@@ -1,0 +1,21 @@
+{
+    "extends": "standard",
+    "env": {
+      "browser": true,
+      "es6": true,
+      "mocha": true
+    },
+    "globals": {
+        "expect": false,
+        "fixture": false,
+        "flush": false,
+        "sinon": false,
+        "WCT": false
+    },
+    "plugins": [
+        "html"
+    ],
+    "rules": {
+      "semi": 0
+    }
+}
