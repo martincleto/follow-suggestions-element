@@ -19,3 +19,7 @@ $ polymer test
 ```
 
 You can also navigate to http://localhost:8081/test/follow-suggestions_test.html to run the tests.
+
+## TO-DO
+- Implementing validation for amount attribute values range (min: 1, max: 30?), their fallbacks and warnings to end user.
+- Refactoring tests suite
